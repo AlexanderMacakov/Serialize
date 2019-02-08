@@ -1,0 +1,7 @@
+.idea
+*.iml
+target
+lib
+out
+uploads
+application-dev.properties
