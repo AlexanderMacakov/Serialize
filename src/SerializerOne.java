@@ -10,6 +10,7 @@ public class SerializerOne implements SuperEncoder {
         try(ByteArrayOutputStream b = new ByteArrayOutputStream()){
             try(ObjectOutputStream o = new ObjectOutputStream(b)){
                 o.writeObject(anyBean);
+                DFS.searchObj(anyBean, anyBean.hashCode());
             }
             return b.toByteArray();
         }
