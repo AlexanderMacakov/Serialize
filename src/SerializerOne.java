@@ -12,7 +12,8 @@ public class SerializerOne implements SuperEncoder {
         try(ByteArrayOutputStream b = new ByteArrayOutputStream()){
             try(ObjectOutputStream o = new ObjectOutputStream(b)){
                 o.writeObject(anyBean);
-                DFS.searchObj(anyBean, anyBean.hashCode());
+                DepthFirstSearch dfs = new DepthFirstSearch();
+                dfs.searchObj(anyBean, anyBean.hashCode());
             }
             return b.toByteArray();
         }
@@ -27,7 +28,7 @@ public class SerializerOne implements SuperEncoder {
         }
     }
 
-    private class DFS {
+    private class DepthFirstSearch {
 
         public void searchObj(Object bean, int rootHash) {
 
@@ -44,7 +45,7 @@ public class SerializerOne implements SuperEncoder {
 
                 }
             }
-            
+
             List<Object> anyObjectBean = new ArrayList<>();
             Class DFSBean = bean.getClass();
             Field[] fields = DFSBean.getDeclaredFields();
