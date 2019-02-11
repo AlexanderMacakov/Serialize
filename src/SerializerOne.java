@@ -4,9 +4,11 @@ import java.util.*;
 
 public class SerializerOne implements SuperEncoder {
 
+    private ArrayList<Integer> hashcodeList = new ArrayList<>();
+
     @Override
     public byte[] serialize(Object anyBean) throws IOException {
-        
+
         try(ByteArrayOutputStream b = new ByteArrayOutputStream()){
             try(ObjectOutputStream o = new ObjectOutputStream(b)){
                 o.writeObject(anyBean);
@@ -25,10 +27,24 @@ public class SerializerOne implements SuperEncoder {
         }
     }
 
-    private static class DFS {
+    private class DFS {
 
+        public void searchObj(Object bean, int rootHash) {
 
-        public static void searchObj(Object bean, int RootHash) {
+            if (!hashcodeList.isEmpty()) {
+                for (Integer hash : hashcodeList) {
+
+                    if (hash == rootHash) {
+                        try {
+                            throw new CircularReferenceException();
+                        } catch (CircularReferenceException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                }
+            }
+            
             List<Object> anyObjectBean = new ArrayList<>();
             Class DFSBean = bean.getClass();
             Field[] fields = DFSBean.getDeclaredFields();
@@ -43,10 +59,10 @@ public class SerializerOne implements SuperEncoder {
 
                             Bean inner = entry.getValue();
 
-                            if(inner.hashCode() == RootHash) {
+                            if(inner.hashCode() == rootHash) {
                                 throw new CircularReferenceException();
                             }
-                            searchObj(inner, RootHash);
+                            searchObj(inner, rootHash);
                         }
 
                     } catch (IllegalAccessException e) {
@@ -62,11 +78,11 @@ public class SerializerOne implements SuperEncoder {
 
                         for (Bean beanArray: beanArrayList) {
 
-                            if(beanArray.hashCode() == RootHash) {
+                            if(beanArray.hashCode() == rootHash) {
                                 throw new CircularReferenceException();
                             }
 
-                            searchObj(beanArray, RootHash);
+                            searchObj(beanArray, rootHash);
                         }
                     } catch (IllegalAccessException e) {
                         e.printStackTrace();
@@ -80,11 +96,11 @@ public class SerializerOne implements SuperEncoder {
 
                         for (Bean beanHash : beanHashSet) {
 
-                            if (beanHash.hashCode() == RootHash) {
+                            if (beanHash.hashCode() == rootHash) {
                                 throw new CircularReferenceException();
                             }
 
-                            searchObj(beanHash, RootHash);
+                            searchObj(beanHash, rootHash);
 
                         }
 
@@ -97,9 +113,10 @@ public class SerializerOne implements SuperEncoder {
 
                     try {
                         Object etc = field.get(DFSBean);
-                        if(etc.hashCode() == RootHash) {
+                        if(etc.hashCode() == rootHash) {
                             throw new CircularReferenceException();
                         }
+                        searchObj(etc, etc.hashCode());
                     } catch (IllegalAccessException e) {
                         e.printStackTrace();
                     } catch (CircularReferenceException e) {
