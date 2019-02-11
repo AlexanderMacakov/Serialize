@@ -10,6 +10,23 @@ public class Start {
 
     public static void main(String[] args) throws IOException, ClassNotFoundException {
 
+        Bean beanOne = new Bean("beanOne", 1);
+        Bean beanTwo = new Bean("beanTwo", 1);
+        Bean beanThree = new Bean("beanThree", 1);
+        Bean beanFour = new Bean("beanfour", 1);
 
+
+        beanOne.setBean(new Bean("innerBeanOne", 2));
+        ArrayList<Bean> arrayList = new ArrayList<>();
+        arrayList.add(beanTwo);
+        arrayList.add(beanThree);
+        arrayList.add(beanOne);
+        beanOne.setListBean(arrayList);
+
+        byte[] bytes;
+
+        SerializerOne serializerOne = new SerializerOne();
+
+        bytes = serializerOne.serialize(beanOne);
     }
 }

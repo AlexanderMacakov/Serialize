@@ -2,6 +2,8 @@ import java.io.*;
 import java.lang.reflect.Field;
 import java.util.*;
 
+import static java.util.Objects.isNull;
+
 public class SerializerOne implements SuperEncoder {
 
     private ArrayList<Integer> hashcodeList = new ArrayList<>();
@@ -13,7 +15,7 @@ public class SerializerOne implements SuperEncoder {
             try (ObjectOutputStream o = new ObjectOutputStream(b)) {
                 o.writeObject(anyBean);
                 DepthFirstSearch dfs = new DepthFirstSearch();
-                dfs.searchObj(anyBean, anyBean.hashCode());
+                dfs.searchObj(anyBean);
             }
             return b.toByteArray();
         }
@@ -30,99 +32,121 @@ public class SerializerOne implements SuperEncoder {
 
     private class DepthFirstSearch {
 
-        public void searchObj(Object bean, int rootHash) {
+        public void searchObj(Object bean) {
+            if (isNull(bean)) {
+                if (!hashcodeList.isEmpty()) {
+                    for (Integer hash : hashcodeList) {
 
-            if (!hashcodeList.isEmpty()) {
-                for (Integer hash : hashcodeList) {
+                        if (hash == bean.hashCode()) {
+                            try {
+                                throw new CircularReferenceException();
+                            } catch (CircularReferenceException e) {
+                                e.printStackTrace();
+                            }
+                        }
 
-                    if (hash == rootHash) {
+                    }
+                }
+
+                hashcodeList.add(bean.hashCode());
+
+
+                Field[] fields = bean.getClass().getDeclaredFields();
+                for (Field field : fields) {
+                    field.setAccessible(true);
+
+                    if (field.getType().equals(Map.class)) {
                         try {
-                            throw new CircularReferenceException();
-                        } catch (CircularReferenceException e) {
+                            Map<String, Bean> beanMap = (Map<String, Bean>) field.get(bean);
+
+                            for (Map.Entry<String, Bean> entry : beanMap.entrySet()) {
+
+                                Bean inner = entry.getValue();
+
+                                if (inner.hashCode() == bean.hashCode()) {
+                                    throw new CircularReferenceException();
+                                }
+                                searchObj(inner);
+                            }
+
+                        } catch (IllegalAccessException | CircularReferenceException e) {
                             e.printStackTrace();
                         }
                     }
 
-                }
-            }
+                    if (field.getType().equals(List.class)) {
 
-            hashcodeList.add(rootHash);
+                        try {
+                            ArrayList<Bean> beanArrayList = (ArrayList<Bean>) field.get(bean);
 
-            List<Object> anyObjectBean = new ArrayList<>();
-            Class DFSBean = bean.getClass();
-            Field[] fields = DFSBean.getDeclaredFields();
-            for (Field field : fields) {
-                field.setAccessible(true);
+                            for (Bean beanArray : beanArrayList) {
 
-                if (field.getType().equals(Map.class)) {
-                    try {
-                        Map<String, Bean> beanMap = (Map<String, Bean>) field.get(DFSBean);
+                                if (beanArray.hashCode() == bean.hashCode()) {
+                                    throw new CircularReferenceException();
+                                }
 
-                        for (Map.Entry<String, Bean> entry : beanMap.entrySet()) {
-
-                            Bean inner = entry.getValue();
-
-                            if (inner.hashCode() == rootHash) {
-                                throw new CircularReferenceException();
+                                searchObj(beanArray);
                             }
-                            searchObj(inner, rootHash);
+                        } catch (IllegalAccessException | CircularReferenceException e) {
+                            e.printStackTrace();
                         }
-
-                    } catch (IllegalAccessException | CircularReferenceException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                if (field.getType().equals(List.class)) {
-
-                    try {
-                        ArrayList<Bean> beanArrayList = (ArrayList<Bean>) field.get(DFSBean);
-
-                        for (Bean beanArray : beanArrayList) {
-
-                            if (beanArray.hashCode() == rootHash) {
-                                throw new CircularReferenceException();
-                            }
-
-                            searchObj(beanArray, rootHash);
-                        }
-                    } catch (IllegalAccessException | CircularReferenceException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                if (field.getType().equals(Set.class)) {
-                    try {
-                        HashSet<Bean> beanHashSet = (HashSet<Bean>) field.get(DFSBean);
-
-                        for (Bean beanHash : beanHashSet) {
-
-                            if (beanHash.hashCode() == rootHash) {
-                                throw new CircularReferenceException();
-                            }
-
-                            searchObj(beanHash, rootHash);
-
-                        }
-
-                    } catch (IllegalAccessException | CircularReferenceException e) {
-                        e.printStackTrace();
                     }
 
-                } else {
+                    if (field.getType().equals(Set.class)) {
+                        try {
+                            HashSet<Bean> beanHashSet = (HashSet<Bean>) field.get(bean);
+
+                            for (Bean beanHash : beanHashSet) {
+
+                                if (beanHash.hashCode() == bean.hashCode()) {
+                                    throw new CircularReferenceException();
+                                }
+
+                                searchObj(beanHash);
+
+                            }
+
+                        } catch (IllegalAccessException | CircularReferenceException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+                    if (field.getType().equals(Bean.class)) {
+                        try {
+                            Object etc = field.get(bean);
+
+                            if(isNull(etc)) {
+                                if (etc.hashCode() == bean.hashCode()) {
+                                    throw new CircularReferenceException();
+                                }
+                            }
+                                searchObj(etc);
+                            } catch(IllegalAccessException | CircularReferenceException e){
+                                e.printStackTrace();
+                            }
+
+                    }
+
+                /*else {
                     try {
-                        Object etc = field.get(DFSBean);
-                        if (etc.hashCode() == rootHash) {
+
+                        Object etc = field.get(bean);
+                        if (etc.hashCode() == bean.hashCode()) {
                             throw new CircularReferenceException();
                         }
-                        searchObj(etc, etc.hashCode());
+                        searchObj(etc);
                     } catch (IllegalAccessException | CircularReferenceException e) {
                         e.printStackTrace();
                     }
-                }
+                }*/
 
+                }
             }
+
         }
 
+        private boolean isNull(Object obj) {
+            return obj != null;
+        }
     }
 }

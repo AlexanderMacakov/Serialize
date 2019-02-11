@@ -1,6 +1,7 @@
+import java.io.Serializable;
 import java.util.*;
 
-public class Bean {
+public class Bean implements Serializable {
 
     private String name = "BeanName";
     private int count = 2;
