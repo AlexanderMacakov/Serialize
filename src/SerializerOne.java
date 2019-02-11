@@ -46,6 +46,8 @@ public class SerializerOne implements SuperEncoder {
                 }
             }
 
+            hashcodeList.add(rootHash);
+
             List<Object> anyObjectBean = new ArrayList<>();
             Class DFSBean = bean.getClass();
             Field[] fields = DFSBean.getDeclaredFields();
