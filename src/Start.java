@@ -20,7 +20,7 @@ public class Start {
         ArrayList<Bean> arrayList = new ArrayList<>();
         arrayList.add(beanTwo);
         arrayList.add(beanThree);
-        arrayList.add(beanOne);
+        arrayList.add(beanFour);
         beanOne.setListBean(arrayList);
 
         byte[] bytes;
@@ -28,5 +28,9 @@ public class Start {
         SerializerOne serializerOne = new SerializerOne();
 
         bytes = serializerOne.serialize(beanOne);
+
+        for (Byte b: bytes) {
+            System.out.println(b);
+        }
     }
 }

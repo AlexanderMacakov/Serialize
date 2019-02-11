@@ -2,7 +2,6 @@ import java.io.*;
 import java.lang.reflect.Field;
 import java.util.*;
 
-import static java.util.Objects.isNull;
 
 public class SerializerOne implements SuperEncoder {
 
@@ -55,7 +54,7 @@ public class SerializerOne implements SuperEncoder {
                 for (Field field : fields) {
                     field.setAccessible(true);
 
-                    if (field.getType().equals(Map.class)) {
+                    if (field.getType().isAssignableFrom(Map.class)) {
                         try {
                             Map<String, Bean> beanMap = (Map<String, Bean>) field.get(bean);
 
@@ -74,10 +73,11 @@ public class SerializerOne implements SuperEncoder {
                         }
                     }
 
-                    if (field.getType().equals(List.class)) {
-
+                    if (field.getType().isAssignableFrom(List.class)) {
                         try {
-                            ArrayList<Bean> beanArrayList = (ArrayList<Bean>) field.get(bean);
+                            Object value = field.get(bean);
+
+                            List<Bean> beanArrayList = (List<Bean>) value;
 
                             for (Bean beanArray : beanArrayList) {
 
@@ -92,7 +92,7 @@ public class SerializerOne implements SuperEncoder {
                         }
                     }
 
-                    if (field.getType().equals(Set.class)) {
+                    if (field.getType().isAssignableFrom(Set.class)) {
                         try {
                             HashSet<Bean> beanHashSet = (HashSet<Bean>) field.get(bean);
 
@@ -111,34 +111,22 @@ public class SerializerOne implements SuperEncoder {
                         }
 
                     }
-                    if (field.getType().equals(Bean.class)) {
+                    if (!field.getType().equals(String.class) && !field.getType().isPrimitive() && !field.getType().isAssignableFrom(List.class) && !field.getType().isAssignableFrom(Set.class) && !field.getType().isAssignableFrom(Map.class)) {
                         try {
                             Object etc = field.get(bean);
 
-                            if(isNull(etc)) {
+                            if (isNull(etc)) {
                                 if (etc.hashCode() == bean.hashCode()) {
                                     throw new CircularReferenceException();
                                 }
-                            }
                                 searchObj(etc);
-                            } catch(IllegalAccessException | CircularReferenceException e){
-                                e.printStackTrace();
                             }
 
-                    }
-
-                /*else {
-                    try {
-
-                        Object etc = field.get(bean);
-                        if (etc.hashCode() == bean.hashCode()) {
-                            throw new CircularReferenceException();
+                        } catch (IllegalAccessException | CircularReferenceException e) {
+                            e.printStackTrace();
                         }
-                        searchObj(etc);
-                    } catch (IllegalAccessException | CircularReferenceException e) {
-                        e.printStackTrace();
+
                     }
-                }*/
 
                 }
             }
