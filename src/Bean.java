@@ -68,4 +68,12 @@ public class Bean implements Serializable {
     public void setMapBean(Map<String, Bean> mapBean) {
         this.mapBean = mapBean;
     }
+
+    @Override
+    public String toString() {
+        return "Bean " +
+                "name='" + name + '\'' +
+                ", count=" + count
+                ;
+    }
 }
