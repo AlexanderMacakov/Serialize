@@ -1,3 +1,5 @@
+import org.apache.commons.lang3.SerializationUtils;
+
 import java.io.*;
 import java.lang.reflect.Field;
 import java.util.*;
@@ -8,25 +10,48 @@ public class SerializerOne implements SuperEncoder {
     private ArrayList<Integer> hashcodeList = new ArrayList<>();
 
     @Override
-    public byte[] serialize(Object anyBean) throws IOException {
+    public byte[] serialize(Object anyBean) throws IOException  {
 
-        try (ByteArrayOutputStream b = new ByteArrayOutputStream()) {
-            try (ObjectOutputStream o = new ObjectOutputStream(b)) {
-                o.writeObject(anyBean);
-                DepthFirstSearch dfs = new DepthFirstSearch();
-                dfs.searchObj(anyBean);
+        byte[] massByte = null;
+        ByteArrayOutputStream boss = null;
+        ObjectOutputStream ooss = null;
+        try {
+            boss = new ByteArrayOutputStream();
+            ooss = new ObjectOutputStream(boss);
+            ooss.writeObject(anyBean);
+            ooss.flush();
+            massByte = boss.toByteArray();
+        } finally {
+            if (ooss != null) {
+                ooss.close();
             }
-            return b.toByteArray();
+            if (boss != null) {
+                boss.close();
+            }
         }
+        return massByte;
     }
 
     @Override
     public Object deserialize(byte[] data) throws IOException, ClassNotFoundException {
-        try (ByteArrayInputStream b = new ByteArrayInputStream(data)) {
-            try (ObjectInputStream o = new ObjectInputStream(b)) {
-                return o.readObject();
+        Object objDeserialize = null;
+        ByteArrayInputStream bais = null;
+        ObjectInputStream ois = null;
+        try {
+            bais = new ByteArrayInputStream(data);
+            ois = new ObjectInputStream(bais);
+            objDeserialize = ois.readObject();
+        } finally {
+            if (bais != null) {
+                bais.close();
+            }
+            if (ois != null) {
+                ois.close();
             }
         }
+        DepthFirstSearch dfs = new DepthFirstSearch();
+        dfs.searchObj(objDeserialize);
+        return objDeserialize;
     }
 
     private class DepthFirstSearch {
@@ -111,5 +136,11 @@ public class SerializerOne implements SuperEncoder {
         private boolean isNull(Object obj) {
             return obj != null;
         }
+
+
+    }
+
+    public static String toString(byte[] bytes) {
+        return new String(bytes);
     }
 }
