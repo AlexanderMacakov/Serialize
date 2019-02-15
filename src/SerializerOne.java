@@ -16,6 +16,8 @@ public class SerializerOne implements SuperEncoder {
         ByteArrayOutputStream boss = null;
         ObjectOutputStream ooss = null;
         try {
+            DepthFirstSearch dfs = new DepthFirstSearch();
+            dfs.searchObj(anyBean);
             boss = new ByteArrayOutputStream();
             ooss = new ObjectOutputStream(boss);
             ooss.writeObject(anyBean);
@@ -49,8 +51,7 @@ public class SerializerOne implements SuperEncoder {
                 ois.close();
             }
         }
-        DepthFirstSearch dfs = new DepthFirstSearch();
-        dfs.searchObj(objDeserialize);
+
         return objDeserialize;
     }
 
